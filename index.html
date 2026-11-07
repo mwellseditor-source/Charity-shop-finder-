@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Charity Shop Finder</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--ink:#26302e;--paper:#fdf9f0;--card:#ffffff;--teal:#0f766e;--teal-soft:#d9efec;--amber:#b45309;}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:var(--ink);background:var(--paper);display:flex;flex-direction:column}
+header{padding:12px 14px 8px;background:var(--paper);border-bottom:1px solid #e8e0d0}
+header h1{font-size:20px;font-weight:800;letter-spacing:-.3px}
+header h1 span{color:var(--teal)}
+header form{display:flex;gap:8px;margin-top:8px}
+header input{flex:1;font-size:16px;padding:10px 12px;border:1.5px solid #d8cfbc;border-radius:12px;background:#fff;color:var(--ink)}
+header input:focus{outline:none;border-color:var(--teal)}
+header button{font-size:16px;font-weight:700;padding:10px 18px;border:none;border-radius:12px;background:var(--teal);color:#fff}
+#status{font-size:13px;color:#6b6455;margin-top:7px;min-height:16px}
+main{position:relative;flex:1;min-height:0}
+#map{position:absolute;inset:0}
+#listBtn{position:absolute;right:12px;top:12px;z-index:600;font-size:14px;font-weight:700;padding:9px 14px;border:none;border-radius:20px;background:#fff;color:var(--teal);box-shadow:0 2px 8px rgba(0,0,0,.18)}
+#listPanel{position:absolute;left:0;right:0;top:0;bottom:0;z-index:590;background:var(--paper);overflow-y:auto;display:none;padding:12px}
+#listPanel.show{display:block}
+#listPanel h3{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:#6b6455;margin:4px 4px 10px}
+.row{display:block;width:100%;text-align:left;background:var(--card);border:1px solid #eee5d4;border-radius:14px;padding:12px 14px;margin-bottom:8px;font-size:15px}
+.row b{display:block;font-size:16px}
+.row small{color:#6b6455}
+#detail{position:absolute;left:0;right:0;bottom:0;z-index:700;background:var(--card);border-radius:18px 18px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.22);padding:16px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s ease;max-height:72%;overflow-y:auto}
+#detail.show{transform:translateY(0)}
+#detail .close{position:absolute;right:12px;top:10px;border:none;background:var(--teal-soft);color:var(--teal);width:30px;height:30px;border-radius:50%;font-size:16px;font-weight:700}
+#detail h2{font-size:20px;font-weight:800;padding-right:36px}
+#detail .op{color:var(--teal);font-weight:600;font-size:14px;margin-top:2px}
+#detail p{font-size:14.5px;margin-top:8px;color:#41473f}
+#detail h3{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:#6b6455;margin:16px 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:14px;padding:8px 13px;border-radius:999px;border:1.5px solid #d8cfbc;background:#fff;color:var(--ink)}
+.chip.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:600}
+.chip.add{border-style:dashed;color:var(--amber)}
+footer{font-size:11px;color:#8a8271;padding:6px 14px calc(6px + env(safe-area-inset-bottom));text-align:center;border-top:1px solid #e8e0d0}
+footer a{color:var(--teal)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Charity Shop <span>Finder</span></h1>
+  <form id="searchForm"><input id="town" value="Weymouth" autocomplete="off" placeholder="Town or city"><button>Find</button></form>
+  <div id="status"></div>
+</header>
+<main>
+  <div id="map"></div>
+  <button id="listBtn">List</button>
+  <aside id="listPanel"></aside>
+  <section id="detail"></section>
+</main>
+<footer>Map &amp; shop data © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors · a prototype built for Martin by Fo</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const WEYMOUTH = [{"id": "n1593556991", "name": "RNLI Shop", "operator": "", "hours": "", "addr": "7 Cove Row", "city": "", "postcode": "DT4 8TT", "phone": "", "website": "https://rnli.org/find-my-nearest/shops/weymouth-rnli-shop", "lat": 50.60629, "lon": -2.45266}, {"id": "n9718463862", "name": "Sue Ryder", "operator": "", "hours": "", "addr": "", "city": "Weymouth", "postcode": "DT3 6NQ", "phone": "", "website": "", "lat": 50.6481, "lon": -2.45429}, {"id": "n11492321635", "name": "Weldmar Hospicecare", "operator": "", "hours": "", "addr": "67B Portland Road", "city": "Wyke Regis", "postcode": "DT4 9BE", "phone": "", "website": "https://www.weldmarhospicecare.org/shops/wyke-regis/", "lat": 50.5945, "lon": -2.47507}, {"id": "n11528340322", "name": "Julia's House", "operator": "", "hours": "", "addr": "38 St Mary Street", "city": "Weymouth", "postcode": "DT4 8PU", "phone": "", "website": "", "lat": 50.60867, "lon": -2.45409}, {"id": "n12083581450", "name": "(unnamed shop)", "operator": "", "hours": "", "addr": "", "city": "", "postcode": "", "phone": "", "website": "", "lat": 50.6054, "lon": -2.45667}, {"id": "n13495223262", "name": "The Lantern Trust", "operator": "", "hours": "", "addr": "", "city": "", "postcode": "", "phone": "", "website": "", "lat": 50.60809, "lon": -2.45449}, {"id": "w1038205916", "name": "Blue Cross", "operator": "", "hours": "", "addr": "98 St Mary Street", "city": "Weymouth", "postcode": "DT4 8NY", "phone": "", "website": "", "lat": 50.61062, "lon": -2.45406}, {"id": "w1038205918", "name": "British Red Cross", "operator": "", "hours": "", "addr": "96 St Mary Street", "city": "Weymouth", "postcode": "DT4 8NY", "phone": "", "website": "https://www.redcross.org.uk/shop/find-a-charity-shop/weymouth", "lat": 50.61052, "lon": -2.45407}, {"id": "w1038205934", "name": "Margaret Green Animal Care", "operator": "", "hours": "", "addr": "5 St Thomas Street", "city": "Weymouth", "postcode": "DT4 8EW", "phone": "", "website": "", "lat": 50.6108, "lon": -2.45426}, {"id": "w1038327221", "name": "Dorset Blind Association", "operator": "", "hours": "", "addr": "8 St Mary Street", "city": "Weymouth", "postcode": "DT4 8PB", "phone": "", "website": "", "lat": 50.61063, "lon": -2.45363}, {"id": "w1202592273", "name": "Cancer Research UK", "operator": "", "hours": "", "addr": "29 St Mary Street", "city": "Weymouth", "postcode": "DT4 8PN", "phone": "", "website": "", "lat": 50.6093, "lon": -2.45394}, {"id": "w1202592278", "name": "British Heart Foundation", "operator": "", "hours": "", "addr": "34 St Mary Street", "city": "Weymouth", "postcode": "DT4 8PN", "phone": "", "website": "https://www.bhf.org.uk/what-we-do/find-bhf-near-you/weymouth-bhf-shop", "lat": 50.609, "lon": -2.45396}, {"id": "w1202984995", "name": "Weldmar Hospicecare Trust", "operator": "", "hours": "", "addr": "59 Great George Street", "city": "Weymouth", "postcode": "DT4 8NN", "phone": "", "website": "", "lat": 50.61126, "lon": -2.45484}, {"id": "w1210705617", "name": "Samaritans", "operator": "", "hours": "", "addr": "King Street", "city": "Weymouth", "postcode": "", "phone": "", "website": "", "lat": 50.61488, "lon": -2.45533}, {"id": "w1213772121", "name": "Life Charity", "operator": "", "hours": "", "addr": "72 The Esplanade", "city": "Weymouth", "postcode": "DT4 7AA", "phone": "", "website": "", "lat": 50.61202, "lon": -2.45418}, {"id": "w1214998445", "name": "The Salvation Army", "operator": "", "hours": "", "addr": "16 Westham Road", "city": "Weymouth", "postcode": "DT4 8NS", "phone": "", "website": "https://www.salvationarmy.org.uk/weymouth-charity-shop", "lat": 50.61199, "lon": -2.45584}, {"id": "w1244531081", "name": "Veteran's Hub", "operator": "", "hours": "", "addr": "114 Portland Road", "city": "Wyke Regis", "postcode": "DT4 9AD", "phone": "", "website": "", "lat": 50.59257, "lon": -2.47457}, {"id": "w1244645561", "name": "Joseph Weld", "operator": "", "hours": "", "addr": "82 Portland Road", "city": "Weymouth", "postcode": "DT4 9AB", "phone": "+44 1305 788369", "website": "", "lat": 50.59381, "lon": -2.4753}];
+const PRESETS = ["Books","Clothes","Bric-a-brac","Vinyl & CDs","Furniture","Toys","Electricals","Crafts","Kids & baby"];
+const map = L.map('map');
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+let markers = [], current = [];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function status(t){ $('status').textContent = t; }
+function showShops(els, center, label){
+  current = els;
+  markers.forEach(m => map.removeLayer(m)); markers = [];
+  status(els.length ? els.length + ' charity shop' + (els.length>1?'s':'') + ' in ' + label : 'no charity shops mapped yet in ' + label + ' — try another town');
+  const g = L.featureGroup();
+  els.forEach(e => {
+    const m = L.marker([e.lat, e.lon]).addTo(map);
+    m.on('click', () => showDetail(e));
+    markers.push(m); g.addLayer(m);
+  });
+  if (els.length) map.fitBounds(g.getBounds().pad(0.2)); else map.setView(center, 13);
+  renderList();
+}
+function renderList(){
+  const p = $('listPanel');
+  p.innerHTML = '<h3>' + current.length + ' shops</h3>' + current.map((e,i) =>
+    '<button class="row" data-i="' + i + '"><b>' + esc(e.name) + '</b><small>' + esc([e.addr,e.city].filter(Boolean).join(', ') || 'address not listed yet') + '</small></button>').join('');
+  p.querySelectorAll('.row').forEach(b => b.addEventListener('click', () => { showDetail(current[+b.dataset.i]); toggleList(false); }));
+}
+function toggleList(on){ $('listPanel').classList.toggle('show', on); $('listBtn').textContent = on ? 'Map' : 'List'; }
+$('listBtn').addEventListener('click', () => toggleList(!$('listPanel').classList.contains('show')));
+function stockKey(id){ return 'csf-stock:' + id; }
+function getStock(id){ try { return JSON.parse(localStorage.getItem(stockKey(id)) || '[]'); } catch(e) { return []; } }
+function setStock(id, arr){ try { localStorage.setItem(stockKey(id), JSON.stringify(arr)); } catch(e) {} }
+function showDetail(e){
+  const saved = getStock(e.id);
+  const where = [e.addr, e.city, e.postcode].filter(Boolean).join(', ') || 'address not listed yet';
+  $('detail').innerHTML =
+    '<button class="close" aria-label="Close">✕</button>' +
+    '<h2>' + esc(e.name) + '</h2>' +
+    (e.operator ? '<p class="op">' + esc(e.operator) + '</p>' : '') +
+    '<p>' + esc(where) + '</p>' +
+    '<p>Hours: ' + (e.hours ? esc(e.hours) : 'not listed yet') + '</p>' +
+    (e.phone ? '<p><a href="tel:' + esc(e.phone) + '">' + esc(e.phone) + '</a></p>' : '') +
+    (e.website ? '<p><a target="_blank" rel="noopener" href="' + esc(e.website) + '">Website ↗</a></p>' : '') +
+    '<h3>What they usually stock</h3>' +
+    '<div class="chips">' + PRESETS.map(c => '<button class="chip' + (saved.includes(c)?' on':'') + '" data-c="' + esc(c) + '">' + esc(c) + '</button>').join('') +
+    '<button class="chip add">+ add</button></div>';
+  $('detail').classList.add('show');
+  $('detail').querySelector('.close').addEventListener('click', () => $('detail').classList.remove('show'));
+  $('detail').querySelectorAll('.chip:not(.add)').forEach(chip => chip.addEventListener('click', () => {
+    const c = chip.dataset.c;
+    const arr = getStock(e.id);
+    const i = arr.indexOf(c);
+    if (i >= 0) { arr.splice(i,1); chip.classList.remove('on'); } else { arr.push(c); chip.classList.add('on'); }
+    setStock(e.id, arr);
+  }));
+  $('detail').querySelector('.chip.add').addEventListener('click', () => {
+    const c = prompt('Add a stock type for ' + e.name);
+    if (!c) return;
+    const arr = getStock(e.id);
+    if (!arr.includes(c)) { arr.push(c); setStock(e.id, arr); }
+    showDetail(e);
+  });
+}
+map.on('click', () => { $('detail').classList.remove('show'); toggleList(false); });
+async function searchTown(q){
+  status('finding ' + q + '…');
+  let geo;
+  try { geo = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=gb&q=' + encodeURIComponent(q)).then(r => r.json()); }
+  catch(e) { status('couldn\'t reach the map data — check your connection'); return; }
+  if (!geo.length) { status('couldn\'t find "' + q + '" — try the full town name'); return; }
+  const bb = geo[0].boundingbox; // [south, north, west, east]
+  status('searching for charity shops…');
+  const query = '[out:json][timeout:30];(node["shop"="charity"](' + bb[0] + ',' + bb[2] + ',' + bb[1] + ',' + bb[3] + ');way["shop"="charity"](' + bb[0] + ',' + bb[2] + ',' + bb[1] + ',' + bb[3] + '););out center tags;';
+  let res;
+  try { res = await fetch('https://overpass-api.de/api/interpreter', {method:'POST', body:'data=' + encodeURIComponent(query)}).then(r => r.json()); }
+  catch(e) { status('the shop database didn\'t answer — try again in a moment'); return; }
+  const els = (res.elements || []).map(e => {
+    const t = e.tags || {};
+    return { id: e.type[0] + e.id, name: t.name || '(unnamed shop)', operator: t.operator || '', hours: t.opening_hours || '',
+      addr: [t['addr:housenumber'], t['addr:street']].filter(Boolean).join(' '), city: t['addr:city'] || '', postcode: t['addr:postcode'] || '',
+      phone: t.phone || '', website: t.website || '', lat: (e.lat !== undefined ? e.lat : (e.center || {}).lat), lon: (e.lon !== undefined ? e.lon : (e.center || {}).lon) };
+  }).filter(e => e.lat !== undefined);
+  showShops(els, [+geo[0].lat, +geo[0].lon], q);
+}
+$('searchForm').addEventListener('submit', ev => { ev.preventDefault(); const q = $('town').value.trim(); if (q) searchTown(q); });
+showShops(WEYMOUTH, [50.607, -2.454], 'Weymouth');
+map.setView([50.607, -2.454], 13);
+</script>
+</body>
+</html>
