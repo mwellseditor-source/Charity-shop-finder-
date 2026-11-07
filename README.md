@@ -1,0 +1,1 @@
+# charity-shop-finder
