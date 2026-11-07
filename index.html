@@ -107,7 +107,11 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function status(t){ $('status').textContent = t; }
 function showShops(els, center, label){
-  try { const mine = getUserShops().filter(s => s.lat != null && Math.abs(s.lat - center[0]) < 0.15 && Math.abs(s.lon - center[1]) < 0.25 && !els.some(e => Math.abs(e.lat - s.lat) < 0.001 && Math.abs(e.lon - s.lon) < 0.001)); els = els.concat(mine); } catch(e) {}
+  LAST_ELS = els; LAST_CENTER = center; LAST_LABEL = label;
+  try { const near = s => s.lat != null && Math.abs(s.lat - center[0]) < 0.15 && Math.abs(s.lon - center[1]) < 0.25 && !els.some(e => Math.abs(e.lat - s.lat) < 0.001 && Math.abs(e.lon - s.lon) < 0.001);
+    const mine = getUserShops().filter(near).map(s => Object.assign({}, s, {user: 1}));
+    const theirs = (COMM.shops || []).filter(near).map(s => Object.assign({}, s, {other: 1}));
+    els = els.concat(mine, theirs); } catch(e) {}
   current = els;
   markers.forEach(m => map.removeLayer(m)); markers = [];
   status(els.length ? els.length + ' charity shop' + (els.length>1?'s':'') + ' in ' + label : 'no charity shops mapped yet in ' + label + ' — try another town');
@@ -123,7 +127,7 @@ function showShops(els, center, label){
 function renderList(){
   const p = $('listPanel');
   p.innerHTML = '<h3>' + current.length + ' shops</h3>' + current.map((e,i) =>
-    '<button class="row" data-i="' + i + '"><b>' + esc(e.name) + '</b><small>' + esc([e.addr,e.city].filter(Boolean).join(', ') || 'address not listed yet') + (e.user ? ' · added by you' : '') + '</small></button>').join('');
+    '<button class="row" data-i="' + i + '"><b>' + esc(e.name) + '</b><small>' + esc([e.addr,e.city].filter(Boolean).join(', ') || 'address not listed yet') + (e.user ? ' · added by you' : (e.other ? ' · added by a user' : '')) + '</small></button>').join('');
   p.querySelectorAll('.row').forEach(b => b.addEventListener('click', () => { showDetail(current[+b.dataset.i]); toggleList(false); }));
 }
 function toggleList(on){ $('listPanel').classList.toggle('show', on); $('listBtn').textContent = on ? 'Map' : 'List'; }
@@ -133,7 +137,7 @@ function getStock(id){ try { return JSON.parse(localStorage.getItem(stockKey(id)
 function setStock(id, arr){ try { localStorage.setItem(stockKey(id), JSON.stringify(arr)); } catch(e) {} }
 
 function stars(n){return '\u2605'.repeat(n)+'\u2606'.repeat(5-n);}
-function revsHtml(e){const r=getRevs(e.id);if(!r.length)return '<p class="op">No reviews yet. Be the first!</p>';
+function revsHtml(e){const r=getRevs(e.id).slice();(COMM.revs[e.id]||[]).forEach(x=>{if(!r.some(y=>y.t===(x.t||'')&&y.n===(x.n||'')&&y.r===x.r))r.push({r:x.r,t:x.t||'',n:x.n||'',d:x.d||(x.created_at?new Date(x.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'')});});if(!r.length)return '<p class="op">No reviews yet. Be the first!</p>';
  const avg=(r.reduce((a,x)=>a+x.r,0)/r.length).toFixed(1);
  return '<p class="op">'+avg+' \u2605 average from '+r.length+' review'+(r.length>1?'s':'')+'</p>'+
   r.slice().reverse().map(x=>'<div class="rev"><span class="stars">'+stars(x.r)+'</span> '+(x.t?esc(x.t):'')+'<small>'+(x.n?esc(x.n)+', ':'')+esc(x.d)+'</small></div>').join('');}
@@ -185,10 +189,12 @@ function showDetail(e){
     arr.push({r: sel, t: t, n: $('detail').querySelector('.revform input').value.trim(),
       d: new Date().toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'})});
     setRevs(e.id, arr);
+    sbPost('reviews', {shop_id: e.id, stars: sel, comment: t, name: $('detail').querySelector('.revform input').value.trim()});
     showDetail(e);
   });
 }
 map.on('click', () => { $('detail').classList.remove('show'); toggleList(false); });
+loadCommunity();
 const UK_TOWNS = ["Aberdeen", "Abergavenny", "Aberystwyth", "Alnwick", "Ambleside", "Andover", "Antrim", "Armagh", "Ashford", "Ashington", "Ayr", "Ballymena", "Banbridge", "Bangor", "Barnsley", "Barnstaple", "Barrow-in-Furness", "Barry", "Basildon", "Basingstoke", "Bath", "Bedford", "Belfast", "Berwick-upon-Tweed", "Beverley", "Birmingham", "Bishop Auckland", "Blackburn", "Blackpool", "Bodmin", "Bognor Regis", "Bolton", "Bournemouth", "Bradford", "Brecon", "Bridgend", "Bridgwater", "Bridlington", "Bridport", "Brighton and Hove", "Bristol", "Burnley", "Bury St Edmunds", "Caernarfon", "Caerphilly", "Camborne", "Cambridge", "Canterbury", "Cardiff", "Carlisle", "Carmarthen", "Carrickfergus", "Chatham", "Chelmsford", "Cheltenham", "Chepstow", "Chester", "Chichester", "Chippenham", "Christchurch", "Cirencester", "Clacton-on-Sea", "Clitheroe", "Colchester", "Coleraine", "Colwyn Bay", "Corby", "Coventry", "Cowes", "Crawley", "Cromer", "Cwmbran", "Darlington", "Derby", "Doncaster", "Dorchester", "Dover", "Downpatrick", "Dumbarton", "Dumfries", "Dundee", "Dunfermline", "Durham", "Eastbourne", "Eastleigh", "Edinburgh", "Elgin", "Ely", "Enniskillen", "Exeter", "Falkirk", "Falmouth", "Fareham", "Felixstowe", "Folkestone", "Fort William", "Frome", "Galashiels", "Gateshead", "Gillingham", "Glasgow", "Glenrothes", "Gloucester", "Gosport", "Great Yarmouth", "Greenock", "Grimsby", "Guildford", "Halifax", "Harlow", "Harrogate", "Hartlepool", "Hastings", "Havant", "Haverfordwest", "Hawick", "Hemel Hempstead", "Hereford", "Hexham", "Holyhead", "Horsham", "Huddersfield", "Ilkley", "Inverness", "Ipswich", "Kelso", "Kendal", "Keswick", "Kettering", "Kilmarnock", "King's Lynn", "Kingston upon Hull", "Kirkcaldy", "Kirkwall", "Knaresborough", "Lancaster", "Larne", "Leeds", "Leicester", "Lerwick", "Lichfield", "Lincoln", "Lisburn", "Liskeard", "Liverpool", "Livingston", "Llandudno", "Llanelli", "Londonderry", "Lowestoft", "Lurgan", "Luton", "Lymington", "Maidstone", "Manchester", "Margate", "Martock", "Merthyr Tydfil", "Middlesbrough", "Milton Keynes", "Mold", "Monmouth", "Morecambe", "Morpeth", "Neath", "Newcastle upon Tyne", "Newquay", "Newry", "Newton Abbot", "Newtownards", "Northallerton", "Northampton", "Norwich", "Nottingham", "Oban", "Okehampton", "Oldham", "Omagh", "Otley", "Oxford", "Paignton", "Paisley", "Peebles", "Penrith", "Penzance", "Perth", "Peterborough", "Plymouth", "Pontypridd", "Poole", "Port Talbot", "Portadown", "Porthcawl", "Portrush", "Portsmouth", "Prestatyn", "Preston", "Ramsgate", "Reading", "Redruth", "Rhyl", "Ringwood", "Ripon", "Rochdale", "Rotherham", "Royal Tunbridge Wells", "Ryde", "Salford", "Salisbury", "Scarborough", "Scunthorpe", "Selby", "Shaftesbury", "Sheffield", "Sherborne", "Skipton", "Slough", "South Shields", "Southampton", "Southend-on-Sea", "St Albans", "St Andrews", "St Ives", "Stevenage", "Stirling", "Stockport", "Stockton-on-Tees", "Stoke-on-Trent", "Stranraer", "Stroud", "Sunderland", "Swanage", "Swansea", "Swindon", "Taunton", "Tavistock", "Tenby", "Thirsk", "Tiverton", "Torquay", "Totnes", "Trowbridge", "Truro", "Tynemouth", "Wakefield", "Warrington", "Watford", "Wells", "Weston-super-Mare", "Weymouth", "Whitby", "Whitehaven", "Whitley Bay", "Wigan", "Wimborne", "Winchester", "Windermere", "Woking", "Wolverhampton", "Workington", "Worthing", "Wrexham", "Yeovil", "York"];
 const MARTOCK = [{"id":"martock-1","name":"St Margaret's Hospice","operator":"St Margaret's Hospice","hours":"Mon–Sat 9–4:30, Sun closed","addr":"5 Martock Centre","city":"Martock","postcode":"TA12 6DL","phone":"01935 825049","website":"https://www.st-margarets-hospice.org.uk/contact-our-shops","lat":50.971471,"lon":-2.765843,"checked":1}, {"id":"martock-2","name":"Martock Charity Shop","operator":"","hours":"","addr":"3 North Street","city":"Martock","postcode":"TA12 6DH","phone":"","website":"","lat":50.9707197,"lon":-2.7662218}];
 const BAKED_TOWNS = { weymouth: {center: [50.607, -2.454], shops: WEYMOUTH}, martock: {center: [50.9709, -2.7654], shops: MARTOCK} };
@@ -227,9 +233,24 @@ async function searchTown(q){
     showShops(els, [+geo[0].lat, +geo[0].lon], q + (res ? '' : ' (saved copy)'));
   } finally { busy(false); }
 }
-function inBbox(bb){ return UK_SHOPS.filter(s => s.lat >= +bb[0] && s.lat <= +bb[1] && s.lon >= +bb[2] && s.lon <= +bb[3]); }
+function inBbox(bb){ return UK_SHOPS.filter(s => s.lat >= +bb[0] && s.lat <= +bb[1] && s.lon >= +bb[2] && s.lon <= +bb[3]).map(s => Object.assign({}, s, {id: s.id || ('k' + s.lat.toFixed(4) + s.lon.toFixed(4))})); }
 function getUserShops(){ try { return JSON.parse(localStorage.getItem('csf-user-shops') || '[]'); } catch(e) { return []; } }
 function setUserShops(a){ try { localStorage.setItem('csf-user-shops', JSON.stringify(a)); } catch(e) {} }
+const SB_URL = 'https://ycmrhefpwjbkgamczzyl.supabase.co';
+const SB_KEY = 'sb_publishable_O328FQyfj9k3AkPTOXVCCg_S7eLc1-3';
+const SB = { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' } };
+let COMM = { shops: [], revs: {}, loaded: false };
+let LAST_ELS = null, LAST_CENTER = null, LAST_LABEL = '';
+function sbGet(table){ return fetch(SB_URL + '/rest/v1/' + table + '?select=*', {headers: SB.headers}).then(r => r.ok ? r.json() : []).catch(() => []); }
+function sbPost(table, row){ fetch(SB_URL + '/rest/v1/' + table, {method: 'POST', headers: SB.headers, body: JSON.stringify(row)}).catch(() => {}); }
+function loadCommunity(){
+  Promise.all([sbGet('shops'), sbGet('reviews')]).then(([s, rv]) => {
+    COMM.shops = (s || []).filter(x => x && x.lat != null);
+    (rv || []).forEach(r => { (COMM.revs[r.shop_id] = COMM.revs[r.shop_id] || []).push(r); });
+    COMM.loaded = true;
+    if (LAST_ELS && LAST_CENTER) showShops(LAST_ELS, LAST_CENTER, LAST_LABEL);
+  });
+}
 $('searchForm').addEventListener('submit', ev => { ev.preventDefault(); const q = $('town').value.trim(); if (q) searchTown(q); });
 let pendingShop = null;
 $('addShopBtn').onclick = () => { const p = $('addPanel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; $('a-msg').textContent = ''; };
@@ -247,7 +268,7 @@ map.on('click', ev => {
   if (!pendingShop) return;
   const shops = getUserShops();
   const s = shops.find(x => x.id === pendingShop.id);
-  if (s) { s.lat = +ev.latlng.lat.toFixed(6); s.lon = +ev.latlng.lng.toFixed(6); setUserShops(shops); pendingShop = null; status('Placed "' + s.name + '" on the map.'); }
+  if (s) { s.lat = +ev.latlng.lat.toFixed(6); s.lon = +ev.latlng.lng.toFixed(6); setUserShops(shops); sbPost('shops', {id: s.id, name: s.name, operator: s.operator || '', hours: s.hours || '', addr: s.addr || '', city: s.city || '', postcode: s.postcode || '', phone: s.phone || '', website: s.website || '', lat: s.lat, lon: s.lon, added_by: ''}); pendingShop = null; status('Placed "' + s.name + '" on the map.'); }
 });
 showShops(WEYMOUTH, [50.607, -2.454], 'Weymouth');
 map.setView([50.607, -2.454], 13);
