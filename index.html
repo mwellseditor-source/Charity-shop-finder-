@@ -40,6 +40,18 @@ main{position:relative;flex:1;min-height:0}
 .chip.add{border-style:dashed;color:var(--amber)}
 footer{font-size:11px;color:#8a8271;padding:6px 14px calc(6px + env(safe-area-inset-bottom));text-align:center;border-top:1px solid #e8e0d0}
 footer a{color:var(--teal)}
+
+.rev{background:var(--paper);border:1px solid #eee5d4;border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:14px}
+.rev .stars{color:var(--amber);font-size:13px;font-weight:700}
+.rev small{color:#6b6455;display:block;margin-top:3px}
+.revform{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.starbtns{display:flex;gap:4px}
+.starbtns button{font-size:22px;background:none;border:none;color:#d8cfbc;cursor:pointer;padding:0 2px}
+.starbtns button.on{color:var(--amber)}
+.revform textarea,.revform input{font-size:15px;padding:9px 11px;border:1.5px solid #d8cfbc;border-radius:10px;background:#fff;font-family:inherit;width:100%}
+.revform .post{font-size:15px;font-weight:700;padding:10px;border:none;border-radius:10px;background:var(--teal);color:#fff}
+.closed{color:var(--amber);font-weight:600}
+#detail small{color:#6b6455}
 </style>
 </head>
 <body>
@@ -57,8 +69,23 @@ footer a{color:var(--teal)}
 <footer>Map &amp; shop data © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors · a prototype built for Martin by Fo</footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const WEYMOUTH = [{"id": "n1593556991", "name": "RNLI Shop", "operator": "", "hours": "", "addr": "7 Cove Row", "city": "", "postcode": "DT4 8TT", "phone": "", "website": "https://rnli.org/find-my-nearest/shops/weymouth-rnli-shop", "lat": 50.60629, "lon": -2.45266}, {"id": "n9718463862", "name": "Sue Ryder", "operator": "", "hours": "", "addr": "", "city": "Weymouth", "postcode": "DT3 6NQ", "phone": "", "website": "", "lat": 50.6481, "lon": -2.45429}, {"id": "n11492321635", "name": "Weldmar Hospicecare", "operator": "", "hours": "", "addr": "67B Portland Road", "city": "Wyke Regis", "postcode": "DT4 9BE", "phone": "", "website": "https://www.weldmarhospicecare.org/shops/wyke-regis/", "lat": 50.5945, "lon": -2.47507}, {"id": "n11528340322", "name": "Julia's House", "operator": "", "hours": "", "addr": "38 St Mary Street", "city": "Weymouth", "postcode": "DT4 8PU", "phone": "", "website": "", "lat": 50.60867, "lon": -2.45409}, {"id": "n12083581450", "name": "(unnamed shop)", "operator": "", "hours": "", "addr": "", "city": "", "postcode": "", "phone": "", "website": "", "lat": 50.6054, "lon": -2.45667}, {"id": "n13495223262", "name": "The Lantern Trust", "operator": "", "hours": "", "addr": "", "city": "", "postcode": "", "phone": "", "website": "", "lat": 50.60809, "lon": -2.45449}, {"id": "w1038205916", "name": "Blue Cross", "operator": "", "hours": "", "addr": "98 St Mary Street", "city": "Weymouth", "postcode": "DT4 8NY", "phone": "", "website": "", "lat": 50.61062, "lon": -2.45406}, {"id": "w1038205918", "name": "British Red Cross", "operator": "", "hours": "", "addr": "96 St Mary Street", "city": "Weymouth", "postcode": "DT4 8NY", "phone": "", "website": "https://www.redcross.org.uk/shop/find-a-charity-shop/weymouth", "lat": 50.61052, "lon": -2.45407}, {"id": "w1038205934", "name": "Margaret Green Animal Care", "operator": "", "hours": "", "addr": "5 St Thomas Street", "city": "Weymouth", "postcode": "DT4 8EW", "phone": "", "website": "", "lat": 50.6108, "lon": -2.45426}, {"id": "w1038327221", "name": "Dorset Blind Association", "operator": "", "hours": "", "addr": "8 St Mary Street", "city": "Weymouth", "postcode": "DT4 8PB", "phone": "", "website": "", "lat": 50.61063, "lon": -2.45363}, {"id": "w1202592273", "name": "Cancer Research UK", "operator": "", "hours": "", "addr": "29 St Mary Street", "city": "Weymouth", "postcode": "DT4 8PN", "phone": "", "website": "", "lat": 50.6093, "lon": -2.45394}, {"id": "w1202592278", "name": "British Heart Foundation", "operator": "", "hours": "", "addr": "34 St Mary Street", "city": "Weymouth", "postcode": "DT4 8PN", "phone": "", "website": "https://www.bhf.org.uk/what-we-do/find-bhf-near-you/weymouth-bhf-shop", "lat": 50.609, "lon": -2.45396}, {"id": "w1202984995", "name": "Weldmar Hospicecare Trust", "operator": "", "hours": "", "addr": "59 Great George Street", "city": "Weymouth", "postcode": "DT4 8NN", "phone": "", "website": "", "lat": 50.61126, "lon": -2.45484}, {"id": "w1210705617", "name": "Samaritans", "operator": "", "hours": "", "addr": "King Street", "city": "Weymouth", "postcode": "", "phone": "", "website": "", "lat": 50.61488, "lon": -2.45533}, {"id": "w1213772121", "name": "Life Charity", "operator": "", "hours": "", "addr": "72 The Esplanade", "city": "Weymouth", "postcode": "DT4 7AA", "phone": "", "website": "", "lat": 50.61202, "lon": -2.45418}, {"id": "w1214998445", "name": "The Salvation Army", "operator": "", "hours": "", "addr": "16 Westham Road", "city": "Weymouth", "postcode": "DT4 8NS", "phone": "", "website": "https://www.salvationarmy.org.uk/weymouth-charity-shop", "lat": 50.61199, "lon": -2.45584}, {"id": "w1244531081", "name": "Veteran's Hub", "operator": "", "hours": "", "addr": "114 Portland Road", "city": "Wyke Regis", "postcode": "DT4 9AD", "phone": "", "website": "", "lat": 50.59257, "lon": -2.47457}, {"id": "w1244645561", "name": "Joseph Weld", "operator": "", "hours": "", "addr": "82 Portland Road", "city": "Weymouth", "postcode": "DT4 9AB", "phone": "+44 1305 788369", "website": "", "lat": 50.59381, "lon": -2.4753}];
+const WEYMOUTH = [{"id": "n1593556991", "name": "RNLI Shop", "operator": "", "hours": "Mon–Sun 10:30–3:30", "addr": "7 Cove Row", "city": "", "postcode": "DT4 8TT", "phone": "01305 759117", "website": "https://rnli.org/find-my-nearest/shops/weymouth-rnli-shop", "lat": 50.60629, "lon": -2.45266, "checked": 1}, {"id": "n9718463862", "name": "Sue Ryder", "operator": "", "hours": "Mon–Sat 9:30–5, Sun 10–4", "addr": "Unit 6, Littlemoor Shopping Centre", "city": "Weymouth", "postcode": "DT3 6NQ", "phone": "01305 816607", "website": "https://www.sueryder.org/support-us/shop-with-us/our-shops/littlemoor", "lat": 50.6481, "lon": -2.45429, "checked": 1}, {"id": "n11492321635", "name": "Weldmar Hospicecare", "operator": "", "hours": "Mon–Sat 9–5, Sun 11–5", "addr": "67B Portland Road", "city": "Wyke Regis", "postcode": "DT4 9BE", "phone": "01305 788369", "website": "https://www.weldmarhospicecare.org/shops/wyke-regis/", "lat": 50.5945, "lon": -2.47507, "checked": 1}, {"id": "n11528340322", "name": "Julia's House", "operator": "", "hours": "Mon–Sat 9–5, Sun 10–4", "addr": "38 St Mary Street", "city": "Weymouth", "postcode": "DT4 8PU", "phone": "01305 785072", "website": "https://juliashouse.org/", "lat": 50.60867, "lon": -2.45409, "checked": 1}, {"id": "n12083581450", "name": "(unnamed shop)", "operator": "", "hours": "", "addr": "", "city": "", "postcode": "", "phone": "", "website": "", "lat": 50.6054, "lon": -2.45667}, {"id": "n13495223262", "name": "The Lantern Trust", "operator": "", "hours": "Mon–Fri 9–5, Sat–Sun closed", "addr": "", "city": "", "postcode": "", "phone": "01305 787940", "website": "https://lanterntrust.org.uk/", "lat": 50.60809, "lon": -2.45449, "checked": 1}, {"id": "w1038205916", "name": "Blue Cross", "operator": "", "hours": "Mon–Sat 9:30–5, Sun closed", "addr": "98 St Mary Street", "city": "Weymouth", "postcode": "DT4 8NY", "phone": "0300 777 1958", "website": "https://www.bluecross.org.uk/blue-cross-shop-weymouth", "lat": 50.61062, "lon": -2.45406, "checked": 1}, {"id": "w1038205918", "name": "British Red Cross", "operator": "", "hours": "Mon–Sat 9–5, Sun 10–4", "addr": "96 St Mary Street", "city": "Weymouth", "postcode": "DT4 8NY", "phone": "01305 788919", "website": "https://www.redcross.org.uk/shop/find-a-charity-shop/weymouth", "lat": 50.61052, "lon": -2.45407, "checked": 1}, {"id": "w1038205934", "name": "Margaret Green Animal Care", "operator": "", "hours": "Mon–Sat 9–5, Sun 10–4", "addr": "5 St Thomas Street", "city": "Weymouth", "postcode": "DT4 8EW", "phone": "01305 839201", "website": "http://www.margaretgreenanimalrescue.org.uk/", "lat": 50.6108, "lon": -2.45426, "checked": 1}, {"id": "w1038327221", "name": "Dorset Blind Association", "operator": "", "hours": "Mon–Sat 10–5, Sun 10:30–4:30", "addr": "8 St Mary Street", "city": "Weymouth", "postcode": "DT4 8PB", "phone": "01305 759829", "website": "https://dorsetblind.org.uk/help-us/charity-shops/", "lat": 50.61063, "lon": -2.45363, "checked": 1}, {"id": "w1202592273", "name": "Cancer Research UK", "operator": "", "hours": "Mon–Sat 9–5:30, Sun 10–4", "addr": "29 St Mary Street", "city": "Weymouth", "postcode": "DT4 8PN", "phone": "01305 780635", "website": "https://www.cancerresearchuk.org/get-involved/find-a-shop/weymouth", "lat": 50.6093, "lon": -2.45394, "checked": 1}, {"id": "w1202592278", "name": "British Heart Foundation", "operator": "", "hours": "Mon–Sat 9:30–5, Sun 10–4", "addr": "34 St Mary Street", "city": "Weymouth", "postcode": "DT4 8PN", "phone": "01305 785457", "website": "https://www.bhf.org.uk/what-we-do/find-bhf-near-you/weymouth-bhf-shop", "lat": 50.609, "lon": -2.45396, "checked": 1}, {"id": "w1202984995", "name": "Weldmar Hospicecare Trust", "operator": "", "hours": "Mon–Sat 9–5, Sun closed", "addr": "59 Great George Street", "city": "Weymouth", "postcode": "DT4 8NN", "phone": "01305 787825", "website": "https://www.weldmarhospicecare.org/shops/weymouth-great-george-street/", "lat": 50.61126, "lon": -2.45484, "checked": 1}, {"id": "w1210705617", "name": "Samaritans", "operator": "", "hours": "", "addr": "King Street", "city": "Weymouth", "postcode": "", "phone": "", "website": "", "lat": 50.61488, "lon": -2.45533}, {"id": "w1213772121", "name": "Life Charity", "operator": "", "hours": "", "addr": "72 The Esplanade", "city": "Weymouth", "postcode": "DT4 7AA", "phone": "", "website": "https://lifecharity.org.uk/", "lat": 50.61202, "lon": -2.45418, "closed": "Closed permanently (checked Nov 2026)"}, {"id": "w1214998445", "name": "The Salvation Army", "operator": "", "hours": "Mon–Fri 9–3, Sat 9–12, Sun closed", "addr": "16 Westham Road", "city": "Weymouth", "postcode": "DT4 8NS", "phone": "01305 778884", "website": "https://www.salvationarmy.org.uk/weymouth-charity-shop", "lat": 50.61199, "lon": -2.45584, "checked": 1}, {"id": "w1244531081", "name": "The Veterans Hub Community Cafe", "operator": "", "hours": "Mon–Fri 10–4, Sat 10–3, Sun closed", "addr": "114 Portland Road", "city": "Wyke Regis", "postcode": "DT4 9AD", "phone": "01305 777788", "website": "", "lat": 50.59257, "lon": -2.47457, "checked": 1}, {"id": "w1244645561", "name": "Joseph Weld", "operator": "", "hours": "Mon–Sat 9–5, Sun 11–5", "addr": "82 Portland Road", "city": "Weymouth", "postcode": "DT4 9AB", "phone": "+44 1305 788369", "website": "", "lat": 50.59381, "lon": -2.4753, "checked": 1}, {"id": "g-chijkuwfof2", "name": "Sue Ryder", "addr": "213–215 Abbotsbury Road", "city": "Weymouth", "postcode": "DT4 0LY", "phone": "01305 780568", "website": "https://www.sueryder.org/support-us/shop-with-us/our-shops/weymouth", "lat": 50.610293, "lon": -2.473346, "hours": "Mon–Sat 9:30–5, Sun closed", "checked": 1}, {"id": "g-chijdbmpf7v", "name": "Sue Ryder", "addr": "117 Dorchester Road", "city": "Weymouth", "postcode": "DT4 7LA", "phone": "01305 770182", "website": "https://www.sueryder.org/support-us/shop-with-us/our-shops/lodmoor-weymouth", "lat": 50.624032, "lon": -2.456125, "hours": "Mon–Sat 9:30–5, Sun 10–4", "checked": 1}, {"id": "g-chijkabaelv", "name": "Weldmar Hospicecare", "addr": "123–125 Dorchester Road", "city": "Weymouth", "postcode": "DT4 7LA", "phone": "01305 780587", "website": "https://www.weldmarhospicecare.org/shops/weymouth-lodmoor/", "lat": 50.624197, "lon": -2.456326, "hours": "Mon–Sat 9–5, Sun 10–4", "checked": 1}, {"id": "g-chijddacrl72", "name": "Weldmar Hospicecare Superstore", "addr": "Unit 11–12, Oxford Court, Cambridge Road", "city": "Weymouth", "postcode": "DT4 9GH", "phone": "01305 770760", "website": "https://www.weldmarhospicecare.org/shops/weymouth-outlet/", "lat": 50.614855, "lon": -2.493184, "hours": "Mon–Sat 9–5, Sun closed", "checked": 1}];
 const PRESETS = ["Books","Clothes","Bric-a-brac","Vinyl & CDs","Furniture","Toys","Electricals","Crafts","Kids & baby"];
+
+const DAYS={Mo:'Mon',Tu:'Tue',We:'Wed',Th:'Thu',Fr:'Fri',Sa:'Sat',Su:'Sun'};
+function t12(t){const m=t.match(/^(\d{1,2}):(\d{2})$/);if(!m)return t;let h=+m[1];const mm=m[2];const ap=h<12?'am':'pm';const h12=h%12||12;return mm==='00'?h12+ap:h12+':'+mm+ap;}
+function fmtHours(oh){return oh.split(';').map(s=>s.trim()).map(seg=>{
+ if(/^24\/7$/i.test(seg))return 'open 24/7';
+ const m=seg.match(/^([A-Za-z]{2}(?:-[A-Za-z]{2})?)\s+(.+)$/);
+ if(!m)return seg;
+ const day=m[1].split('-').map(k=>DAYS[k.trim()]||k.trim()).join('\u2013');
+ if(/off/i.test(m[2]))return day+' closed';
+ const tm=m[2].match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
+ return tm?day+' '+t12(tm[1])+'\u2013'+t12(tm[2]):day+' '+m[2];
+}).join(', ');}
+function revKey(id){return 'csf-rev:'+id;}
+function getRevs(id){try{return JSON.parse(localStorage.getItem(revKey(id))||'[]');}catch(e){return [];}}
+function setRevs(id,arr){try{localStorage.setItem(revKey(id),JSON.stringify(arr));}catch(e){}}
 const map = L.map('map');
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
 let markers = [], current = [];
@@ -89,6 +116,12 @@ $('listBtn').addEventListener('click', () => toggleList(!$('listPanel').classLis
 function stockKey(id){ return 'csf-stock:' + id; }
 function getStock(id){ try { return JSON.parse(localStorage.getItem(stockKey(id)) || '[]'); } catch(e) { return []; } }
 function setStock(id, arr){ try { localStorage.setItem(stockKey(id), JSON.stringify(arr)); } catch(e) {} }
+
+function stars(n){return '\u2605'.repeat(n)+'\u2606'.repeat(5-n);}
+function revsHtml(e){const r=getRevs(e.id);if(!r.length)return '<p class="op">No reviews yet. Be the first!</p>';
+ const avg=(r.reduce((a,x)=>a+x.r,0)/r.length).toFixed(1);
+ return '<p class="op">'+avg+' \u2605 average from '+r.length+' review'+(r.length>1?'s':'')+'</p>'+
+  r.slice().reverse().map(x=>'<div class="rev"><span class="stars">'+stars(x.r)+'</span> '+(x.t?esc(x.t):'')+'<small>'+(x.n?esc(x.n)+', ':'')+esc(x.d)+'</small></div>').join('');}
 function showDetail(e){
   const saved = getStock(e.id);
   const where = [e.addr, e.city, e.postcode].filter(Boolean).join(', ') || 'address not listed yet';
@@ -97,12 +130,17 @@ function showDetail(e){
     '<h2>' + esc(e.name) + '</h2>' +
     (e.operator ? '<p class="op">' + esc(e.operator) + '</p>' : '') +
     '<p>' + esc(where) + '</p>' +
-    '<p>Hours: ' + (e.hours ? esc(e.hours) : 'not listed yet') + '</p>' +
+    '<p>Hours: ' + (e.hours ? esc(fmtHours(e.hours)) : 'not listed yet') + (e.checked ? ' <small>(checked Nov 2026)</small>' : '') + '</p>' +(e.closed ? '<p class=\"closed\">' + esc(e.closed) + '</p>' : '') +
     (e.phone ? '<p><a href="tel:' + esc(e.phone) + '">' + esc(e.phone) + '</a></p>' : '') +
     (e.website ? '<p><a target="_blank" rel="noopener" href="' + esc(e.website) + '">Website ↗</a></p>' : '') +
     '<h3>What they usually stock</h3>' +
     '<div class="chips">' + PRESETS.map(c => '<button class="chip' + (saved.includes(c)?' on':'') + '" data-c="' + esc(c) + '">' + esc(c) + '</button>').join('') +
-    '<button class="chip add">+ add</button></div>';
+    '<button class="chip add">+ add</button></div>' +
+'<h3>Reviews</h3><div>' + revsHtml(e) + '</div>' +
+'<div class="revform"><div class="starbtns">' + [1,2,3,4,5].map(i=>'<button type="button" data-r="'+i+'">\u2605</button>').join('') + '</div>' +
+'<textarea rows="2" placeholder="What did you think? (optional)"></textarea>' +
+'<input placeholder="Your name (optional)">' +
+'<button class="post">Post review</button></div>';
   $('detail').classList.add('show');
   $('detail').querySelector('.close').addEventListener('click', () => $('detail').classList.remove('show'));
   $('detail').querySelectorAll('.chip:not(.add)').forEach(chip => chip.addEventListener('click', () => {
@@ -117,6 +155,21 @@ function showDetail(e){
     if (!c) return;
     const arr = getStock(e.id);
     if (!arr.includes(c)) { arr.push(c); setStock(e.id, arr); }
+    showDetail(e);
+  });
+  let sel = 0;
+  const sb = $('detail').querySelector('.starbtns');
+  sb.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    sel = +b.dataset.r;
+    sb.querySelectorAll('button').forEach(x => x.classList.toggle('on', +x.dataset.r <= sel));
+  }));
+  $('detail').querySelector('.revform .post').addEventListener('click', () => {
+    const t = $('detail').querySelector('.revform textarea').value.trim();
+    if (!sel && !t) return;
+    const arr = getRevs(e.id);
+    arr.push({r: sel, t: t, n: $('detail').querySelector('.revform input').value.trim(),
+      d: new Date().toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'})});
+    setRevs(e.id, arr);
     showDetail(e);
   });
 }
